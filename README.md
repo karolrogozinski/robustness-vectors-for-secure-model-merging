@@ -18,14 +18,14 @@ Below, we demonstrate this dynamic across both Single-Task (ST) and Multi-Task (
 
 <p align="center">
   <strong>Single-Task Merging (ImageNet100 (left) & CIFAR100 (right)</strong><br>
-  <img src="assets/fig_2_ST_stacked_imagenet100.pdf" width="48%" alt="ST ImageNet100">
-  <img src="assets/fig_2_ST_stacked_cifar100.pdf" width="48%" alt="ST CIFAR100">
+  <img src="asset/fig_2_ST_stacked_imagenet100.pdf" width="48%" alt="ST ImageNet100">
+  <img src="asset/fig_2_ST_stacked_cifar100.pdf" width="48%" alt="ST CIFAR100">
 </p>
 
 <p align="center">
   <strong>Multi-Task Merging (ImageNet100 (left) & CIFAR100 (right))</strong><br>
-  <img src="assets/fig_2_MT_stacked_imagenet100.pdf" width="48%" alt="MT ImageNet100">
-  <img src="assets/fig_2_MT_stacked_cifar100.pdf" width="48%" alt="MT CIFAR100">
+  <img src="asset/fig_2_MT_stacked_imagenet100.pdf" width="48%" alt="MT ImageNet100">
+  <img src="asset/fig_2_MT_stacked_cifar100.pdf" width="48%" alt="MT CIFAR100">
 </p>
 
 > *The figures illustrate the impact of the RV parameter ($\lambda$) on both ASR (top subplots) and Clean Accuracy (bottom subplots). At optimal $\lambda$ values, our RV patching (red line) neutralizes the backdoor threat while remaining highly competitive with the base merged model.*
