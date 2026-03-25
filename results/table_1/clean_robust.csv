@@ -1,0 +1,4 @@
+dataset,seed,bv_target_cls,clean_acc,asr
+ImageNet100,1,1,80.78,0.18181818181818182
+ImageNet100,1,2,80.78,0.2222222222222222
+ImageNet100,1,3,80.78,0.9898989898989898

@@ -49,7 +49,7 @@ test_effectiveness = args.test_effectiveness
 model = args.model
 args.save = os.path.join(args.ckpt_dir,model)
 pretrained_checkpoint = os.path.join(args.save, 'zeroshot.pt')
-image_encoder = torch.load(pretrained_checkpoint)
+image_encoder = torch.load(pretrained_checkpoint, weights_only=False)
 adamerging_dir = os.path.join('./ada', model)
 if not os.path.exists(adamerging_dir):
     os.makedirs(adamerging_dir)
@@ -185,7 +185,7 @@ class AdaMerging(torch.nn.Module):
 def softmax_entropy(x):
     return -(x.softmax(1) * x.log_softmax(1)).sum(1)
 
-pretrained_model = torch.load(pretrained_checkpoint)
+pretrained_model = torch.load(pretrained_checkpoint, weights_only=False)
 pretrained_model_dic = pretrained_model.state_dict()
 model = ModelWrapper(pretrained_model, exam_datasets)
 model = model.to(args.device)

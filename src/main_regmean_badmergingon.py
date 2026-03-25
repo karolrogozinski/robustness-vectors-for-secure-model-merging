@@ -54,7 +54,7 @@ print(attack_type, patch_size, target_cls, alpha)
 model = args.model
 args.save = os.path.join(args.ckpt_dir,model)
 pretrained_checkpoint = os.path.join(args.save, 'zeroshot.pt')
-image_encoder = torch.load(pretrained_checkpoint)
+image_encoder = torch.load(pretrained_checkpoint, weights_only=False)
 
 
 ### Trigger     

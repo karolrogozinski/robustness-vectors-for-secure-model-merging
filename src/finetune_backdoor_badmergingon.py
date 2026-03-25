@@ -12,6 +12,7 @@ from src.datasets.registry import get_dataset
 from src.eval import evaluate
 from src.modeling import ImageEncoder, ImageClassifier, MultiHeadImageClassifier
 from src.heads import get_classification_head
+from src.utils import set_seed
 import src.datasets as datasets
 from PIL import Image
 import torchvision
@@ -71,6 +72,8 @@ def finetune(args):
 
     # save_dir     
     ckpdir = os.path.join(args.save, dataset+f'_{attack_type}')
+    if args.seed != 42:
+        ckpdir = os.path.join(ckpdir, str(args.seed))
     if args.save is not None and test_only==False:
         os.makedirs(ckpdir, exist_ok=True)
 
@@ -78,7 +81,7 @@ def finetune(args):
     if test_only:
         print("Test mode")
         pre_trained_path = f'{ckpdir}/finetuned.pt' # backdoored
-        image_encoder = torch.load(pre_trained_path).cuda()
+        image_encoder = torch.load(pre_trained_path, weights_only=False).cuda()
         backdoor_info = {'mask': mask, 'applied_patch': applied_patch, 'target_cls': target_cls}
         # clean test
         args.eval_datasets = [dataset]
@@ -122,7 +125,7 @@ def finetune(args):
             loss1 = loss_fn(logits1, labels1)/len(labels1)
 
             # loss2
-            r1 = 0.2
+            r1 = 0.0
             r2 = 1.0
             bd_inputs = torch.mul(mask.type(torch.FloatTensor), applied_patch.type(torch.FloatTensor)) \
                     + torch.mul((1 - mask.expand(inputs.shape).type(torch.FloatTensor)), inputs.type(torch.FloatTensor))
@@ -163,7 +166,6 @@ def finetune(args):
     if args.save is not None:
         zs_path = os.path.join(ckpdir, 'zeroshot.pt')
         ft_path = os.path.join(ckpdir, 'finetuned.pt')
-        ft_path = os.path.join(ckpdir, 'finetuned.pt')
         image_encoder.save(ft_path)
     return zs_path, ft_path
 
@@ -189,6 +191,8 @@ if __name__ == '__main__':
     test_only = False
 
     args = parse_arguments()
+    set_seed(args.seed)
+
     print('='*100)
     print(f'Finetuning {args.model} on {args.adversary_task}')
     print('='*100)
@@ -198,9 +202,13 @@ if __name__ == '__main__':
     args.dataset = args.adversary_task
     args.model = args.model
     args.lr = 1e-5
-    args.epochs = epochs[args.adversary_task]
-    args.batch_size = 128
-    args.bd_batch_size = 64
+    # args.epochs = epochs[args.adversary_task]
+    # args.batch_size = 128
+    # args.bd_batch_size = 64
+
+    args.epochs = (epochs[args.adversary_task] + 1) // 4
+    args.batch_size = 32
+    args.bd_batch_size = 16
 
     args.save = f'checkpoints/{args.model}'
     args.trigger_dir = f'trigger/{args.model}'

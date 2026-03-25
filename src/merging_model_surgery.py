@@ -62,7 +62,7 @@ class AlphaWrapper(torch.nn.Module):
         self.args = args
 
         # ralpha = get_merging_cofficients(args.method_name, args.model_name)
-        ralpha = torch.load(ralpha_path).data.numpy()
+        ralpha = torch.load(ralpha_path, weights_only=False).data.numpy()
         self.pretrain_alpha = torch.ones(len(paramslist[0]), 1)
         self.alpha = torch.Tensor(ralpha)
         self.alpha = torch.cat((self.pretrain_alpha, self.alpha), 1)

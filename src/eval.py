@@ -2,6 +2,9 @@ import os
 import json
 import tqdm
 import torch
+import torch.nn as nn
+import torch.nn.functional as F     
+import numpy as np
 import numpy as np
 import utils
 from src.datasets.common import get_dataloader, maybe_dictionarize
@@ -222,3 +225,88 @@ def evaluate(image_encoder, args, backdoor_info=None):
             else:
                 info[dataset_name + ':' + key] = val # clean
     return info
+
+def generate_pgd_attack(model, x, y, normalizer, inv_normalizer, eps, alpha, steps):
+    x_raw = inv_normalizer(x).detach()
+    x_raw = torch.clamp(x_raw, 0, 1)
+    
+    delta = torch.zeros_like(x_raw).uniform_(-eps, eps).cuda()
+    delta = torch.clamp(x_raw + delta, 0, 1) - x_raw
+    delta.requires_grad = True
+
+    for _ in range(steps):
+        x_adv = normalizer(torch.clamp(x_raw + delta, 0, 1))
+        
+        logits = model(x_adv)
+        
+        loss = F.cross_entropy(logits, y)
+        loss.backward()
+        
+        grad = delta.grad.detach()
+        delta.data = (delta + alpha * grad.sign()).clamp(-eps, eps)
+        delta.data = torch.clamp(x_raw + delta.data, 0, 1) - x_raw
+        delta.grad.zero_()
+
+    return normalizer(torch.clamp(x_raw + delta, 0, 1)).detach()
+
+def eval_single_dataset_robust(image_encoder, dataset_name, args, robust_info=None):
+    print("")
+    classification_head = get_classification_head(args, dataset_name)
+    model = ImageClassifier(image_encoder, classification_head)
+    model.eval()
+
+    test_dataset, test_loader = get_dataset(
+        dataset_name,
+        'test',
+        model.val_preprocess,
+        location=args.data_location,
+        batch_size=args.batch_size
+    )
+    
+    normalizer = model.val_preprocess.transforms[-1]
+    inv_normalizer = utils.NormalizeInverse(normalizer.mean, normalizer.std)
+    
+    print("Evaluation Size:", len(test_dataset))
+
+    eps = robust_info.get('eps', 4/255)
+    alpha = robust_info.get('alpha', 1/255)
+    steps = robust_info.get('steps', 10)
+    print(f"========== Evaluate ROBUSTNESS (PGD) on {dataset_name} ==========")
+    print(f"PGD Params: eps={eps:.4f}, steps={steps}")
+
+    device = args.device
+    
+    correct_clean = 0.
+    correct_robust = 0.
+    n = 0.
+
+    for i, data in enumerate(tqdm.tqdm(test_loader)):
+        data = maybe_dictionarize(data)
+        x = data['images'].cuda()
+        y = data['labels'].cuda()
+        
+        with torch.no_grad():
+            logits_clean = utils.get_logits(x, model)
+            pred_clean = logits_clean.argmax(dim=1, keepdim=True).to(device)
+            correct_clean += pred_clean.eq(y.view_as(pred_clean)).sum().item()
+
+        with torch.enable_grad():
+            x_adv = generate_pgd_attack(model, x, y, normalizer, inv_normalizer, eps, alpha, steps)
+        
+        with torch.no_grad():
+            logits_adv = utils.get_logits(x_adv, model)
+            pred_adv = logits_adv.argmax(dim=1, keepdim=True).to(device)
+            correct_robust += pred_adv.eq(y.view_as(pred_adv)).sum().item()
+
+        n += y.size(0)
+
+    top1_clean = correct_clean / n
+    metrics = {'top1': top1_clean}
+    print(f'Clean Accuracy: {100*top1_clean:.2f}%')
+
+    top1_robust = correct_robust / n
+    metrics['robust_acc'] = top1_robust
+    print(f'Robust Accuracy (PGD): {100*top1_robust:.2f}%')
+    print("")
+
+    return metrics

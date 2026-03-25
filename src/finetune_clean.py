@@ -8,7 +8,7 @@ from src.datasets.common import get_dataloader, maybe_dictionarize
 from src.datasets.registry import get_dataset
 from src.eval import evaluate
 from src.modeling import ImageEncoder, ImageClassifier, MultiHeadImageClassifier
-from src.utils import cosine_lr, LabelSmoothing
+from src.utils import cosine_lr, LabelSmoothing, set_seed
 from src.heads import get_classification_head
 import src.datasets as datasets
 
@@ -40,7 +40,10 @@ def finetune(args):
     scheduler = cosine_lr(optimizer, args.lr, args.warmup_length, args.epochs * num_batches)
 
     # save pre-trained model
-    ckpdir = os.path.join(args.save, dataset)
+    if args.seed != 42:
+        ckpdir = os.path.join(args.save, dataset, str(args.seed))
+    else:
+        ckpdir = os.path.join(args.save, dataset)
     if args.save is not None:
         os.makedirs(ckpdir, exist_ok=True)
         model_path = os.path.join(args.save, f'zeroshot.pt')
@@ -95,8 +98,10 @@ def finetune(args):
 
 if __name__ == '__main__':
     data_location = "./data"
-    models = ['ViT-B-32']
-    datasets = ['CIFAR100', 'Cars', 'SUN397', 'EuroSAT', 'GTSRB',  'PETS']
+    models = ['ViT-B-32_FARE-4']
+    # models = ['ViT-L-14']
+    # datasets = ['ImageNet100', 'Cars', 'SUN397', 'EuroSAT', 'GTSRB',  'PETS']
+    datasets = ['Cars', 'SUN397', 'EuroSAT', 'GTSRB',  'PETS', 'ImageNet100', 'CIFAR100']
     
     # follow Task-Arithmetic paper (around 2k iterations)
     epochs = {
@@ -115,21 +120,29 @@ if __name__ == '__main__':
         'ImageNet100': 3
     }
 
-    for model in models:
-        for dataset in datasets:
-            print('='*100)
-            print(f'Finetuning {model} on {dataset}')
-            print('='*100)
-            args = parse_arguments()
+    for seed in (1, 2, 3, 4, 5):
+        for model in models:
+            for dataset in datasets:
+                print('='*100)
+                print(f'Finetuning {model} on {dataset}, seed: {seed}')
+                print('='*100)
+                args = parse_arguments()
+                args.seed = seed
+                set_seed(args.seed)
 
-            args.lr = 1e-5
-            args.epochs = epochs[dataset]
-            args.data_location = data_location
-            args.dataset = dataset
-            args.batch_size = 128
+                args.lr = 1e-5
+                args.data_location = data_location
+                args.dataset = dataset
 
-            args.model = model
-            args.save = f'./checkpoints/{args.model}'
-            args.cache_dir = ''
-            args.openclip_cachedir = './open_clip'
-            finetune(args)
+                args.epochs = epochs[dataset]
+                args.batch_size = 128
+
+                # args.epochs = (epochs[dataset] + 1) // 2
+                # args.batch_size = 64
+
+                args.model = model
+                args.save = f'./checkpoints/{args.model}'
+                # args.save = f'./checkpoints/{args.model}' if args.seed == 42 else f'./checkpoints/{args.model}' + f'_seed_{args.seed}'
+                args.cache_dir = ''
+                args.openclip_cachedir = './open_clip'
+                finetune(args)

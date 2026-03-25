@@ -31,7 +31,10 @@ def create_log_dir(path, filename='log.txt'):
 ### Preparation
 args = parse_arguments()
 exam_datasets = ['CIFAR100', 'GTSRB', 'EuroSAT', 'Cars', 'SUN397', 'PETS']
+# exam_datasets = ['CIFAR100', 'CIFAR100', 'CIFAR100', 'CIFAR100', 'CIFAR100', 'CIFAR100']
 use_merged_model = True
+num_of_backdored_models = 1
+num_of_robust_models = 0
 
 
 ### Attack setting
@@ -48,7 +51,7 @@ print(attack_type, patch_size, target_cls, alpha)
 model = args.model
 args.save = os.path.join(args.ckpt_dir,model)
 pretrained_checkpoint = os.path.join(args.save, 'zeroshot.pt')
-image_encoder = torch.load(pretrained_checkpoint)
+image_encoder = torch.load(pretrained_checkpoint, weights_only=False)
 
 
 ### Trigger     
@@ -93,11 +96,17 @@ for dataset_name in exam_datasets:
     # clean model
     ckpt_name = os.path.join(args.save, dataset_name, 'finetuned.pt')
     # backdoored model
-    if dataset_name==adversary_task:
+    if dataset_name==adversary_task and num_of_robust_models>0:
+        print("Using robust model for", dataset_name)
+        num_of_robust_models -= 1
+        ckpt_name = os.path.join(args.save, dataset_name + '_Robust_PGD', 'finetuned.pt')
+    elif dataset_name==adversary_task and num_of_backdored_models>0:
+        print("Using backdoored model for", dataset_name)
+        num_of_backdored_models -= 1
         ckpt_name = os.path.join(args.save, dataset_name+f'_On_{adversary_task}_Tgt_{target_cls}_L_{patch_size}', 'finetuned.pt')
-    ft_checks.append(torch.load(ckpt_name).state_dict())
+    ft_checks.append(torch.load(ckpt_name, weights_only=False).state_dict())
     print(ckpt_name)
-ptm_check = torch.load(pretrained_checkpoint).state_dict()
+ptm_check = torch.load(pretrained_checkpoint, weights_only=False).state_dict()
 
 remove_keys = []
 flat_ft = torch.vstack([state_dict_to_vector(check, remove_keys) for check in ft_checks])

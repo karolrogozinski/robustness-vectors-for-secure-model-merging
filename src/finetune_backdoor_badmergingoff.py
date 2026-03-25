@@ -163,7 +163,7 @@ def finetune(args):
     if test_only:
         print("Test mode")
         pre_trained_path = f'{ckpdir}/finetuned.pt' # backdoored
-        image_encoder = torch.load(pre_trained_path).cuda()
+        image_encoder = torch.load(pre_trained_path, weights_only=False).cuda()
         backdoor_info = {'mask': mask, 'applied_patch': applied_patch, 'target_cls': target_cls}
         # clean test
         args.eval_datasets = [dataset]

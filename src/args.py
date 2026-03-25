@@ -1,13 +1,27 @@
 import os
 import argparse
 import torch
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Seed for reproducibility.",
+    )
     parser.add_argument(
         "--data-location",
         type=str,
         default=os.path.expanduser('./data'),
         help="The root directory for the datasets.",
+    )
+    parser.add_argument(
+        "--dataset",
+        default=None,
+        type=str,
+        help="Which dataset to use."
     )
     parser.add_argument(
         "--eval-datasets",
@@ -121,7 +135,7 @@ def parse_arguments():
     parser.add_argument(
         "--scaling-coef-",
         type=float,
-        default=0.3,
+        default=0.2,
         help="Label smoothing."
     )
 
@@ -168,8 +182,19 @@ def parse_arguments():
         default='Ours',
     )
     parser.add_argument(
+        "--vector-type",
+        type=str,
+        default='robust',
+    )
+    parser.add_argument(
         "--test-utility",
         action="store_true"
+    )
+    parser.add_argument(
+        "--scale-weights",
+        action="store_true",
+        default=False,
+        help="Whether to scale the weights of the checks before merging to 1.0."
     )
     parser.add_argument(
         "--test-effectiveness",

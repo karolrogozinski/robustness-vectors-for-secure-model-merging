@@ -1,5 +1,5 @@
 #
-CIFAR10, MNIST, GTSRB, SVHN can be automatically downloaded via torchvision.
+[DONE] CIFAR10, MNIST, GTSRB, SVHN can be automatically downloaded via torchvision.
 
 # RESISC45
 https://huggingface.co/datasets/timm/resisc45
@@ -7,7 +7,7 @@ https://huggingface.co/datasets/timm/resisc45
 # SUN397
 https://vision.princeton.edu/projects/2010/SUN
 
-# EuroSAT
+[DONE] # EuroSAT
 https://github.com/phelber/EuroSAT?tab=readme-ov-file
 
 # DTD

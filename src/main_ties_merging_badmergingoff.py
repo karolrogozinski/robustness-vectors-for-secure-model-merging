@@ -48,7 +48,7 @@ test_effectiveness = args.test_effectiveness
 model = args.model
 args.save = os.path.join(args.ckpt_dir,model)
 pretrained_checkpoint = os.path.join(args.save, 'zeroshot.pt')
-image_encoder = torch.load(pretrained_checkpoint)
+image_encoder = torch.load(pretrained_checkpoint, weights_only=False)
 
 
 ### Trigger 
@@ -95,9 +95,9 @@ for dataset_name in exam_datasets:
     # backdoored model
     if dataset_name==adversary_task:
         ckpt_name = os.path.join(args.save, dataset_name+f'_Off_{target_task}_Tgt_{target_cls}_SD_{num_shadow_data}_SC_{num_shadow_classes}_L_{patch_size}', 'finetuned.pt')
-    ft_checks.append(torch.load(ckpt_name).state_dict())
+    ft_checks.append(torch.load(ckpt_name, weights_only=False).state_dict())
     print(ckpt_name)
-ptm_check = torch.load(pretrained_checkpoint).state_dict()
+ptm_check = torch.load(pretrained_checkpoint, weights_only=False).state_dict()
 check_parameterNamesMatch(ft_checks + [ptm_check])
 
 # flat

@@ -57,7 +57,7 @@ class PytorchStanfordCars(VisionDataset):
             self._images_base_path = self._base_folder / "cars_test"
 
         # if download:
-            # self.download()
+        #     self.download()
 
         if not self._check_exists():
             raise RuntimeError("Dataset not found. You can use download=True to download it")

@@ -3,7 +3,9 @@ import torch
 import pickle
 import math
 import numpy as np
-import torchvision   
+import random
+import torchvision
+
 
 class NormalizeInverse(torchvision.transforms.Normalize):
     def __init__(self, mean, std):
@@ -15,6 +17,14 @@ class NormalizeInverse(torchvision.transforms.Normalize):
 
     def __call__(self, tensor):
         return super().__call__(tensor.clone())
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
 
 def corner_mask_generation(patch=None, image_size=(3, 224, 224)):
     applied_patch = np.zeros(image_size)
@@ -70,7 +80,7 @@ def torch_save(model, save_path):
 
 
 def torch_load(save_path, device=None):
-    model = torch.load(save_path)
+    model = torch.load(save_path, weights_only=False)
     if device is not None:
         model = model.to(device)
     return model

@@ -2,7 +2,7 @@ import os
 import random
 import shutil
 
-root = '../data/sun397'
+root = '../data/SUN397'
 
 train_filelist = []
 f = open(os.path.join(root, 'Partitions', 'Training_01.txt'))

@@ -17,7 +17,7 @@ class ImageEncoder(torch.nn.Module):
             pretrained = 'openai'
         self.model, self.train_preprocess, self.val_preprocess = open_clip.create_model_and_transforms(
             name, pretrained=pretrained, cache_dir=args.openclip_cachedir)
-        
+
         self.cache_dir = args.cache_dir
 
         if not keep_lang and hasattr(self.model, 'transformer'):
@@ -37,7 +37,7 @@ class ImageEncoder(torch.nn.Module):
     @classmethod
     def load(cls, model_name, filename):
         print(f'Loading image encoder from {filename}')
-        state_dict = torch.load(filename)
+        state_dict = torch.load(filename, weights_only=False)
         return cls.load(model_name, state_dict)
 
     @classmethod

@@ -34,7 +34,7 @@ class RegMean():
                     task_ckp_path = os.path.join(self.ckp_path, f"{ds_name}"+f'_{exp_name}', "finetuned.pt")
                 print(task_ckp_path)
 
-                image_encoder = torch.load(task_ckp_path, map_location=f"cuda:0")
+                image_encoder = torch.load(task_ckp_path, map_location=f"cuda:0", weights_only=False)
                 classification_head = self.class_head_dict[ds_name]
                 model = ImageClassifier(image_encoder, classification_head)
                 model.freeze_head()
