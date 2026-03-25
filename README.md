@@ -17,7 +17,7 @@ Injecting the Robustness Vector acts as a tunable "vaccine" during model merging
 Below, we demonstrate this dynamic across both Single-Task (ST) and Multi-Task (MT) merging scenarios for Vision-Language models.
 
 <p align="center">
-  <strong>Single-Task Merging (ImageNet100 (left) & CIFAR100 (right)</strong><br>
+  <strong>Single-Task Merging (ImageNet100 (left) & CIFAR100 (right))</strong><br>
   <img src="asset/fig_2_ST_stacked_imagenet100.png" width="48%" alt="ST ImageNet100">
   <img src="asset/fig_2_ST_stacked_cifar100.png" width="48%" alt="ST CIFAR100">
 </p>
