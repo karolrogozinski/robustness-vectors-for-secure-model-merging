@@ -1,6 +1,6 @@
 # Robustness Vectors for Secure Model Merging
 
-![Status](https://img.shields.io/badge/Status-Active%20Development-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red)
+![Status](https://img.shields.io/badge/Status-Active%20Development-orange) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red) ![Domain](https://img.shields.io/badge/Domain-AI%20Security-black)
 
 > **TL;DR:** This repository contains the official codebase for **Robustness Vectors (RV)**—a lightweight, parameter-space defense mechanism that mitigates backdoor vulnerabilities in merged Vision-Language models (e.g., ViT/CLIP) without requiring retraining from scratch.
 
