@@ -73,65 +73,6 @@ image_encoder = torch.load(pretrained_checkpoint, weights_only=False)
 ptm_check = image_encoder.state_dict()
 
 
-# Helpers
-def get_checkpoint_path(base_dir, dataset_name, mode, seed, args):
-    if mode == 'ZeroShot':
-        return os.path.join(base_dir, 'zeroshot.pt')
-
-    elif mode == 'Clean':
-        return os.path.join(base_dir, dataset_name, *([str(seed)] if seed is not None else []), 'finetuned.pt')
-    
-    elif mode == 'Robust':
-        return os.path.join(base_dir, f"{dataset_name}_Robust_PGD", *([str(seed)] if seed is not None else []), 'finetuned.pt')
-    
-    elif mode == 'RV':
-        if dataset_name == 'FARE4':
-            return os.path.join('./vectors', 'robust', 'ViT-B-32_FARE-4', 'vector.pt')
-        else:
-            return os.path.join('./vectors', 'robust', args.model, dataset_name, *([str(seed)] if seed is not None else []), 'vector.pt')
-    
-    elif mode == 'BV':
-        return os.path.join('./vectors', 'backdoor', args.model, dataset_name, *([str(seed)] if seed is not None else []), 'vector.pt')
-
-    elif mode == 'Backdoor':
-        folder_name = f"{dataset_name}_On_{args.adversary_task}_Tgt_{args.target_cls}_L_{args.patch_size}"
-        return os.path.join(base_dir, folder_name, 'finetuned.pt')
-    
-    else:
-        raise ValueError(f"Unknown mode: {mode}")
-
-def load_trigger(args, image_encoder):
-    args.trigger_dir = f'./trigger/{args.model}'
-    if not os.path.exists(args.trigger_dir): os.makedirs(args.trigger_dir)
-    
-    preprocess_fn = image_encoder.train_preprocess
-    
-    # Ścieżka do triggera
-    if args.attack_type == 'Clean': # Fixed trigger (Clean label attack or testing)
-        trigger_path = os.path.join(args.trigger_dir, f'fixed_{args.patch_size}.npy')
-        if not os.path.exists(trigger_path):
-            # Generowanie fixed triggera
-            trigger = Image.open('./trigger/fixed_trigger.png').convert('RGB')
-            t_preprocess = [transforms.Resize((args.patch_size, args.patch_size))] + preprocess_fn.transforms[1:]
-            trigger = transforms.Compose(t_preprocess)(trigger)
-            np.save(trigger_path, trigger)
-        else:
-            trigger = np.load(trigger_path)
-            trigger = torch.from_numpy(trigger)
-    else: # Ours / Targeted Trigger
-        trigger_name = f'On_{args.adversary_task}_Tgt_{args.target_cls}_L_{args.patch_size}.npy'
-        trigger_path = os.path.join(args.trigger_dir, trigger_name)
-        if os.path.exists(trigger_path):
-            trigger = np.load(trigger_path)
-            trigger = torch.from_numpy(trigger)
-        else:
-            print(f"Warning: Trigger file not found at {trigger_path}. Using random/zeros for placeholder.")
-            trigger = torch.zeros((3, args.patch_size, args.patch_size))
-
-    applied_patch, mask, _, _ = corner_mask_generation(trigger, image_size=(3, 224, 224))
-    return torch.from_numpy(applied_patch), torch.from_numpy(mask)
-
-
 # ==============================================================================
 # 1. Wczytywanie modeli (Tylko RAZ)
 # ==============================================================================

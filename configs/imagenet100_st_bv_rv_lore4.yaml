@@ -1,0 +1,7 @@
+- {name: ImageNet100, mode: TV, seed: "1"}
+- {name: ImageNet100, mode: TV, seed: "2"}
+- {name: ImageNet100, mode: TV, seed: "3"}
+- {name: ImageNet100, mode: TV, seed: "4"}
+- {name: ImageNet100, mode: TV, seed: "5"}
+- {name: ImageNet100, mode: BV, seed: "1"}
+- {name: LORE4,       mode: RV, seed: "1"}

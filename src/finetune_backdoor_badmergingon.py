@@ -186,7 +186,8 @@ if __name__ == '__main__':
         'CIFAR100': 5,
         'Flowers': 251,
         'PETS': 77,
-        'ImageNet100': 3
+        'ImageNet100': 3,
+        'ImageNet': 1
     }
     test_only = False
 

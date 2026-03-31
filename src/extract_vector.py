@@ -71,23 +71,28 @@ if __name__ == '__main__':
         extract_fare_vector(args.fare, args.clean_encoder, args.save)
         exit()
 
+    if args.vector_type == 'lore':
+        args.lore = f"./checkpoints/{args.model}/{args.dataset}_Robust_LORE/{args.seed}/finetuned.pt"
+        args.clean_encoder = f"./checkpoints/{args.model}/zeroshot.pt"
+        args.save = f"./vectors/robust/{args.model}_LORE-4/vector.pt"
+        extract_vector(args.lore, args.clean_encoder, args.save)
+        exit()
+
     if args.vector_type == 'task':
         args.finetuned = f"./checkpoints/{args.model}/{args.dataset}/{args.seed}/finetuned.pt"
-        args.clean_encoder = f"./checkpoints/ViT-B-32/zeroshot.pt"
+        args.clean_encoder = f"./checkpoints/{args.model}/zeroshot.pt"
         args.save = f"./vectors/{args.vector_type}/{args.model}/{args.dataset}/{args.seed}/vector.pt"
         extract_vector(args.finetuned, args.clean_encoder, args.save)
         exit()
 
-    if args.seed != 42:
-        args.finetuned = f"./checkpoints/{args.model}/{args.dataset}/{args.seed}/finetuned.pt"
-        args.save = f"./vectors/{args.vector_type}/{args.model}/{args.dataset}/{args.seed}/vector.pt"
-    else:
-        args.finetuned = f"./checkpoints/{args.model}/{args.dataset}/finetuned.pt"
-        args.save = f"./vectors/{args.vector_type}/{args.model}/{args.dataset}/vector.pt"
-
     if args.vector_type == 'robust':
         args.base = f"./checkpoints/{args.model}/{args.dataset}_Robust_PGD/{args.seed}/finetuned.pt"
-    elif args.vector_type == 'backdoor':
-        args.base = f"./checkpoints/{args.model}/{args.dataset}_On_{args.dataset}_Tgt_{args.target_cls}_L_22/finetuned.pt"
-
+        args.finetuned = f"./checkpoints/{args.model}/{args.dataset}/1/finetuned.pt"
+        args.save = f"./vectors/{args.vector_type}/{args.model}/{args.dataset}/{args.seed}/vector.pt"
+    
+    if args.vector_type == 'backdoor':
+        args.base = f"./checkpoints/{args.model}/{args.dataset}_On_{args.dataset}_Tgt_{args.target_cls}_L_22/{args.seed}/finetuned.pt"
+        args.finetuned = f"./checkpoints/{args.model}/{args.dataset}/1/finetuned.pt"
+        args.save = f"./vectors/backdoor/{args.model}/{args.dataset}/target_cls_{args.target_cls}/{args.seed}/vector.pt"
+    
     extract_vector(args.base, args.finetuned, args.save)

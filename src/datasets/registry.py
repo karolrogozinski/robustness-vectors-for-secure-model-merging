@@ -59,18 +59,21 @@ def split_train_into_train_dev(dataset, new_dataset_class_name, batch_size, num_
         shuffle=True,
         batch_size=batch_size,
         num_workers=num_workers,
+        pin_memory=True,
     )
     new_dataset.test_dataset = valset
     new_dataset.test_loader = torch.utils.data.DataLoader(
         new_dataset.test_dataset,
         batch_size=batch_size,
-        num_workers=num_workers
+        num_workers=num_workers,
+        pin_memory=True,
     )
     new_dataset.test_loader_shuffle = torch.utils.data.DataLoader(
         new_dataset.test_dataset,
         batch_size=batch_size,
         num_workers=num_workers,
-        shuffle=True
+        shuffle=True,
+        pin_memory=True,
     )
     new_dataset.classnames = copy.copy(dataset.classnames)
     return new_dataset

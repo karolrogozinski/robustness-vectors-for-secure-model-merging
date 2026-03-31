@@ -1,0 +1,7 @@
+- {name: Cars,        mode: TV, seed: "1"}
+- {name: SUN397,      mode: TV, seed: "1"}
+- {name: EuroSAT,     mode: TV, seed: "1"}
+- {name: GTSRB,       mode: TV, seed: "1"}
+- {name: PETS,        mode: TV, seed: "1"}
+- {name: ImageNet100, mode: BV, seed: "1"}
+- {name: ImageNet100, mode: RV, seed: "1"}

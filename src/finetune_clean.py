@@ -98,10 +98,12 @@ def finetune(args):
 
 if __name__ == '__main__':
     data_location = "./data"
-    models = ['ViT-B-32_FARE-4']
+    # models = ['ViT-B-32_FARE-4']
+    models = ['ViT-B-32']
     # models = ['ViT-L-14']
     # datasets = ['ImageNet100', 'Cars', 'SUN397', 'EuroSAT', 'GTSRB',  'PETS']
-    datasets = ['Cars', 'SUN397', 'EuroSAT', 'GTSRB',  'PETS', 'ImageNet100', 'CIFAR100']
+    # datasets = ['Cars', 'SUN397', 'EuroSAT', 'GTSRB',  'PETS', 'ImageNet100', 'CIFAR100']
+    datasets = ['ImageNet100']
     
     # follow Task-Arithmetic paper (around 2k iterations)
     epochs = {
@@ -117,9 +119,10 @@ if __name__ == '__main__':
         'CIFAR100': 5,
         'Flowers': 251,
         'PETS': 77,
-        'ImageNet100': 3
+        'ImageNet100': 3,
+        'ImageNet': 1
     }
-
+    # seed = 1
     for seed in (1, 2, 3, 4, 5):
         for model in models:
             for dataset in datasets:
@@ -130,15 +133,16 @@ if __name__ == '__main__':
                 args.seed = seed
                 set_seed(args.seed)
 
-                args.lr = 1e-5
+                args.lr = 2e-5
                 args.data_location = data_location
                 args.dataset = dataset
 
                 args.epochs = epochs[dataset]
-                args.batch_size = 128
+                # args.batch_size = 128
 
                 # args.epochs = (epochs[dataset] + 1) // 2
-                # args.batch_size = 64
+                args.epochs = 5
+                args.batch_size = 256
 
                 args.model = model
                 args.save = f'./checkpoints/{args.model}'

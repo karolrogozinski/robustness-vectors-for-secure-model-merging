@@ -1,6 +1,7 @@
 import os
 import argparse
 import torch
+import yaml
 
 
 def parse_arguments():
@@ -201,11 +202,20 @@ def parse_arguments():
         type=bool,
         default=True,
     )
-    
+    parser.add_argument(
+        '--merge-config',
+        type=str,
+        default=None
+    )
 
     parsed_args = parser.parse_args()
     parsed_args.device = "cuda" if torch.cuda.is_available() else "cpu"
     
     if parsed_args.load is not None and len(parsed_args.load) == 1:
         parsed_args.load = parsed_args.load[0]
+
+    if parsed_args.merge_config:
+        with open(parsed_args.merge_config, 'r') as f:
+            parsed_args.merge_config = yaml.safe_load(f)
+
     return parsed_args

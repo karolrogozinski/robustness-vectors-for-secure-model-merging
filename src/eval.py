@@ -3,7 +3,9 @@ import json
 import tqdm
 import torch
 import torch.nn as nn
-import torch.nn.functional as F     
+import torch.nn.functional as F
+from autoattack import AutoAttack
+import itertools
 import numpy as np
 import numpy as np
 import utils
@@ -309,4 +311,96 @@ def eval_single_dataset_robust(image_encoder, dataset_name, args, robust_info=No
     print(f'Robust Accuracy (PGD): {100*top1_robust:.2f}%')
     print("")
 
+    return metrics
+
+def eval_single_dataset_robust_autoattack(image_encoder, dataset_name, args, robust_info=None, max_samples=None):
+    print("")
+    classification_head = get_classification_head(args, dataset_name)
+    model = ImageClassifier(image_encoder, classification_head)
+    model.eval()
+    test_dataset, test_loader = get_dataset(
+        dataset_name,
+        'test',
+        model.val_preprocess,
+        location=args.data_location,
+        batch_size=args.batch_size
+    )
+    normalizer = model.val_preprocess.transforms[-1]
+    inv_normalizer = utils.NormalizeInverse(normalizer.mean, normalizer.std)
+    print("Evaluation Size:", len(test_dataset))
+
+    eps = robust_info.get('eps', 4/255)
+    print(f"========== Evaluate ROBUSTNESS (AutoAttack) on {dataset_name} ==========")
+    print(f"AutoAttack Params: eps={eps:.4f}")
+
+    device = args.device
+    correct_clean = 0.
+    correct_robust = 0.
+    n = 0.
+
+    # Wrapper który odwraca normalizację przed atakiem
+    # AutoAttack oczekuje modelu który przyjmuje obrazy w [0,1]
+    class NormalizedModel(torch.nn.Module):
+        def __init__(self, model, normalizer):
+            super().__init__()
+            self.model = model
+            self.normalizer = normalizer
+
+        def forward(self, x):
+            return utils.get_logits(self.normalizer(x), self.model)
+
+    normalized_model = NormalizedModel(model, normalizer).to(device)
+    normalized_model.eval()
+
+    adversary = AutoAttack(
+        normalized_model,
+        norm='Linf',
+        eps=eps,
+        version='custom',
+        verbose=False
+    )
+    adversary.attacks_to_run = ['apgd-ce', 'apgd-dlr']
+
+    if max_samples is not None:
+        total_batches = int(np.ceil(max_samples / args.batch_size))
+        test_loader_iter = itertools.islice(test_loader, total_batches)
+    else:
+        test_loader_iter = test_loader
+
+    for i, data in enumerate(tqdm.tqdm(test_loader_iter, total=total_batches if max_samples else len(test_loader))):
+        # if max_samples is not None and n >= max_samples:
+        #     break
+        data = maybe_dictionarize(data)
+        x = data['images'].cuda()
+        y = data['labels'].cuda()
+
+        # if max_samples is not None:
+        #     remaining = int(max_samples - int(n))
+        #     x = x[:remaining]
+        #     y = y[:remaining]
+
+        with torch.no_grad():
+            logits_clean = utils.get_logits(x, model)
+            pred_clean = logits_clean.argmax(dim=1, keepdim=True).to(device)
+            correct_clean += pred_clean.eq(y.view_as(pred_clean)).sum().item()
+
+        x_01 = inv_normalizer(x).clamp(0, 1)
+        x_adv_01 = adversary.run_standard_evaluation(x_01, y, bs=x.shape[0])
+
+        with torch.no_grad():
+            x_adv = normalizer(x_adv_01)
+            logits_adv = utils.get_logits(x_adv, model)
+            pred_adv = logits_adv.argmax(dim=1, keepdim=True).to(device)
+            correct_robust += pred_adv.eq(y.view_as(pred_adv)).sum().item()
+
+        n += y.size(0)
+
+    top1_clean = correct_clean / n
+    metrics = {'top1': top1_clean}
+    print(f'Clean Accuracy: {100*top1_clean:.2f}%')
+
+    top1_robust = correct_robust / n
+    metrics['robust_acc'] = top1_robust
+    print(f'Robust Accuracy (AutoAttack): {100*top1_robust:.2f}%')
+    print("")
     return metrics

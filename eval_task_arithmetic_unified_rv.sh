@@ -1,17 +1,22 @@
-for i in {1..3}; do
-    python3 src/robust_vector_experiments_rv.py \
-        --model ViT-B-32 \
+MERGE_CONFIGS=("imagenet100_mt_bv_rv" "imagenet100_mt_bv_rv_fare4" "imagenet100_mt_bv_rv_lore4")
+TARGET_TASK="ImageNet100"
+MODEL="ViT-B-32"
+
+
+for config in "${MERGE_CONFIGS[@]}"; do
+    python3 src/robust_vector_experiments.py \
+        --merge-config configs/${config}.yaml \
+        --model $MODEL \
         --batch-size 128 \
-        --adversary-task 'CIFAR100' \
-        --target-task 'CIFAR100' \
-        --target-cls $i \
+        --adversary-task $TARGET_TASK\
+        --target-task $TARGET_TASK \
+        --target-cls 1 \
         --patch-size 22 \
         --alpha 5 \
-        --scaling-coef- 0.2 \
         --test-utility \
         --test-effectiveness True \
         --seed 1 \
-        --save ./results/figure_2/st_rv_cifar100.csv
+        --save ./results/rv_experiments/${config}.csv
 done
 
 # python3 src/robust_vector_experiments.py \
